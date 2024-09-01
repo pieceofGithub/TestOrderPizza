@@ -1,16 +1,24 @@
-import { StyleSheet, Image, Text, View } from "react-native";
+import { StyleSheet, Image, Text, View, Pressable } from "react-native";
 import Colors from "../constants/Colors";
 import { Product } from "@/types";
+import { useRouter } from "expo-router";
 
 const defaultPizzaImage =
   "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/food/default.png";
+
 type ProductListItemProps = {
   product: Product;
 };
 
 const ProductListItem = ({ product }: ProductListItemProps) => {
+  const router = useRouter();
+
+  const handlePress = () => {
+    router.push(`menu/${product.id}`);
+  };
+
   return (
-    <View style={styles.container}>
+    <Pressable onPress={handlePress} style={styles.container}>
       <Image
         source={{ uri: product.image || defaultPizzaImage }}
         style={styles.image}
@@ -18,7 +26,7 @@ const ProductListItem = ({ product }: ProductListItemProps) => {
       />
       <Text style={styles.title}>{product.name}</Text>
       <Text style={styles.price}>${product.price.toFixed(2)}</Text>
-    </View>
+    </Pressable>
   );
 };
 
@@ -30,6 +38,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     overflow: "hidden",
+    flex: 1,
+    maxWidth: "50%",
   },
   image: {
     width: "100%",
