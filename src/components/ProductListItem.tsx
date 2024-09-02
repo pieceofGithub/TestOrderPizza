@@ -11,7 +11,7 @@ type ProductListItemProps = {
 const ProductListItem = ({ product }: ProductListItemProps) => {
   const router = useRouter();
   const segments = useSegments();
-  console.log(segments);
+  // console.log(segments);
 
   const handlePress = () => {
     router.push(
