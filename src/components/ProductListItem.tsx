@@ -1,7 +1,7 @@
 import { StyleSheet, Image, Text, View, Pressable } from "react-native";
 import Colors from "../constants/Colors";
 import { Product } from "@/types";
-import { useRouter, Href } from "expo-router";
+import { useRouter, Href, useSegments } from "expo-router";
 import { defaultPizzaImage } from "@/constants/Images";
 
 type ProductListItemProps = {
@@ -10,9 +10,13 @@ type ProductListItemProps = {
 
 const ProductListItem = ({ product }: ProductListItemProps) => {
   const router = useRouter();
+  const segments = useSegments();
+  console.log(segments);
 
   const handlePress = () => {
-    router.push(`menu/${product.id}` as Href<`menu/${number}`>);
+    router.push(
+      `/${segments[0]}/menu/${product.id}` as Href<`/${string}/menu/${number}`>
+    );
   };
 
   return (
