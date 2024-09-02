@@ -1,29 +1,32 @@
 import { View, Text, StyleSheet, Image, Pressable } from "react-native";
 import React, { useState } from "react";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import Button from "../../../components/Button";
 import { PizzaSize } from "../../../types";
 import products from "../../../../assets/data/products";
-import { defaultPizzaImage } from "@/components/ProductListItem";
+import { defaultPizzaImage } from "@/constants/Images";
+import { useCart } from "@/providers/CartProvider";
 
 const sizes: PizzaSize[] = ["S", "M", "L", "XL"];
 
-const product = products[0];
-
 const ProductDetailsScreen = () => {
   const { id } = useLocalSearchParams();
+  const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState<PizzaSize>("M");
+
+  const product = products.find((p) => p.id.toString() === id);
 
   const addToCart = () => {
     if (!product) return;
-    console.warn("Add to cart");
+    addItem(product, selectedSize);
+    router.push("/cart");
   };
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: product.name }} />
+      <Stack.Screen options={{ title: product?.name || "Product Details" }} />
       <Image
-        source={{ uri: product.image || defaultPizzaImage }}
+        source={{ uri: product?.image || defaultPizzaImage }}
         style={styles.image}
         resizeMode="contain"
       />
@@ -52,11 +55,14 @@ const ProductDetailsScreen = () => {
           </Pressable>
         ))}
       </View>
-      <Text style={styles.price}>Price: ${product.price.toFixed(2)}</Text>
+      <Text style={styles.price}>
+        Price: ${product?.price.toFixed(2) || "0.00"}
+      </Text>
       <Button onPress={addToCart} text="Add to cart" />
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
