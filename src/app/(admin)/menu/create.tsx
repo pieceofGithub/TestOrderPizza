@@ -1,10 +1,16 @@
 import { View, Text, StyleSheet, Image, TextInput, Alert } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { defaultPizzaImage } from "@/constants/Images";
 import Colors from "@/constants/Colors";
 import Button from "@/components/Button";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  useDeleteProduct,
+  useInsertProduct,
+  useProduct,
+  useUpdateProduct,
+} from "@/api/products";
 
 const CreateScreen = () => {
   const [image, setImage] = useState<string | null>(null);
@@ -13,8 +19,24 @@ const CreateScreen = () => {
   const [errors, setErrors] = useState("");
 
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id: idString } = useLocalSearchParams();
+  const id = parseFloat(
+    typeof idString === "string" ? idString : idString?.[0]
+  );
+  const { data: updatedProduct, isLoading } = useProduct(id);
   const isUpdating = !!id;
+
+  const { mutate: insertProduct } = useInsertProduct();
+  const { mutate: updateProduct } = useUpdateProduct();
+  const { mutate: deleteProduct } = useDeleteProduct();
+
+  useEffect(() => {
+    if (updatedProduct) {
+      setName(updatedProduct.name);
+      setPrice(updatedProduct.price.toString());
+      setImage(updatedProduct.image);
+    }
+  }, [updatedProduct]);
 
   const validateInput = () => {
     setErrors("");
@@ -34,7 +56,7 @@ const CreateScreen = () => {
   };
   const onSubmit = () => {
     if (isUpdating) {
-      onUpdateCreate();
+      onUpdate();
     } else {
       onCreate();
     }
@@ -44,25 +66,44 @@ const CreateScreen = () => {
       return;
     }
 
-    console.warn("Creating dish");
-    setName("");
-    setPrice("");
-    setImage("");
-    router.back();
+    insertProduct(
+      { name, price: parseFloat(price), image },
+      {
+        onSuccess: () => {
+          setName("");
+          setPrice("");
+          setImage(null);
+          router.back();
+        },
+      }
+    );
   };
-  const onUpdateCreate = () => {
+  const onUpdate = () => {
     if (!validateInput()) {
       return;
     }
 
-    console.warn("Updating Product: ");
-    setName("");
-    setPrice("");
-    setImage("");
-    router.back();
+    updateProduct(
+      { id, name, price: parseFloat(price), image },
+      {
+        onSuccess: () => {
+          setName("");
+          setPrice("");
+          setImage(null);
+          router.back();
+        },
+      }
+    );
   };
   const onDelete = () => {
-    console.warn("Deleteeeee");
+    deleteProduct(id, {
+      onSuccess: () => {
+        setName("");
+        setPrice("");
+        setImage(null);
+        router.replace("/(admin)");
+      },
+    });
   };
   const confirmDelete = () => {
     Alert.alert("Confirm", "Are you sure? You want to delete this product", [
@@ -85,7 +126,7 @@ const CreateScreen = () => {
       quality: 1,
     });
 
-    console.log(result);
+    // console.log(result);
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
