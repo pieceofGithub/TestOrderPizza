@@ -5,16 +5,17 @@ import CartListItem from "@/components/CartListItem";
 import Button from "@/components/Button";
 
 const CartScreen = () => {
-  const { items, total } = useCart();
+  const { items, total, checkout } = useCart();
   return (
     <View style={{ padding: 10 }}>
       <FlatList
+        refreshing
         data={items}
         renderItem={({ item }) => <CartListItem cartItem={item} />}
         contentContainerStyle={{ padding: 10, gap: 10 }}
       />
       <Text style={{ fontSize: 20 }}>Total: {total}</Text>
-      <Button text="Check Out" />
+      <Button onPress={checkout} text="Check Out" />
     </View>
   );
 };
