@@ -32,18 +32,18 @@ const OrderDetailScreen = () => {
   if (error || !order) {
     return <Text>Failed to querring products</Text>;
   }
+  console.log(order?.order_items);
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: `Order #${order.id}` }} />
-
-      <OrderListItem order={order} />
 
       <FlatList
         refreshing
         data={order.order_items}
         renderItem={({ item }) => <OrderItemListItem item={item} />}
         contentContainerStyle={{ gap: 10 }}
+        ListHeaderComponent={() => <OrderListItem order={order} />}
         ListFooterComponent={() => (
           <>
             <Text style={{ fontWeight: "bold" }}>Status</Text>

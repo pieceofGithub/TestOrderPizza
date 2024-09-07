@@ -3,6 +3,7 @@ import Colors from "../constants/Colors";
 import { useRouter, Href, useSegments } from "expo-router";
 import { defaultPizzaImage } from "@/constants/Images";
 import { Tables } from "@/database.types";
+import RemoteImage from "./RemoteImage";
 
 type ProductListItemProps = {
   product: Tables<"products">;
@@ -21,8 +22,9 @@ const ProductListItem = ({ product }: ProductListItemProps) => {
 
   return (
     <Pressable onPress={handlePress} style={styles.container}>
-      <Image
-        source={{ uri: product.image || defaultPizzaImage }}
+      <RemoteImage
+        path={product.image}
+        fallback={defaultPizzaImage}
         style={styles.image}
         resizeMode="contain"
       />

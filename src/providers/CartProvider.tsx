@@ -77,21 +77,20 @@ export default function CartProvider({ children }: PropsWithChildren) {
     );
   };
 
-  const saveOrderItems = (newOrder: Tables<"orders">) => {
-    if (!newOrder) return;
+  const saveOrderItems = (order: Tables<"orders">) => {
+    const orderItems = items.map((cartItem) => ({
+      order_id: order.id,
+      product_id: cartItem.product_id,
+      quantity: cartItem.quantity,
+      size: cartItem.size,
+    }));
 
-    insertOrderItems(
-      {
-        items,
-        order_id: newOrder.id,
+    insertOrderItems(orderItems, {
+      onSuccess() {
+        clearCart();
+        router.push(`/(user)/orders/${order.id}`);
       },
-      {
-        onSuccess() {
-          setItems([]);
-          router.push(`/(user)/orders/${newOrder.id}`);
-        },
-      }
-    );
+    });
   };
 
   return (

@@ -8,14 +8,13 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { Link, Stack, router, useLocalSearchParams } from "expo-router";
-import Button from "../../../components/Button";
 import { PizzaSize } from "../../../types";
-
 import { defaultPizzaImage } from "@/constants/Images";
 import { useCart } from "@/providers/CartProvider";
 import { FontAwesome } from "@expo/vector-icons";
 import Colors from "@/constants/Colors";
 import { useProduct } from "@/api/products";
+import RemoteImage from "@/components/RemoteImage";
 
 const sizes: PizzaSize[] = ["S", "M", "L", "XL"];
 
@@ -63,8 +62,9 @@ const ProductDetailsScreen = () => {
           ),
         }}
       />
-      <Image
-        source={{ uri: product?.image || defaultPizzaImage }}
+      <RemoteImage
+        path={product?.image}
+        fallback={defaultPizzaImage}
         style={styles.image}
         resizeMode="contain"
       />

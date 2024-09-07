@@ -11,6 +11,10 @@ import {
   useProduct,
   useUpdateProduct,
 } from "@/api/products";
+import * as FileSystem from "expo-file-system";
+import { randomUUID } from "expo-crypto";
+import { supabase } from "@/lib/supabase";
+import { decode } from "base64-arraybuffer";
 
 const CreateScreen = () => {
   const [image, setImage] = useState<string | null>(null);
@@ -61,13 +65,16 @@ const CreateScreen = () => {
       onCreate();
     }
   };
-  const onCreate = () => {
+  const onCreate = async () => {
     if (!validateInput()) {
       return;
     }
 
+    const imagePath = await uploadImage();
+
+    // Save in the database
     insertProduct(
-      { name, price: parseFloat(price), image },
+      { name, price: parseFloat(price), image: imagePath },
       {
         onSuccess: () => {
           setName("");
@@ -78,23 +85,37 @@ const CreateScreen = () => {
       }
     );
   };
-  const onUpdate = () => {
+  const onUpdate = async () => {
+    // 1. Validate user input
     if (!validateInput()) {
       return;
     }
 
+    // 2. Upload image to a storage service and retrieve the image path
+    const imagePath = await uploadImage();
+
+    // 3. Update the product information in the database
     updateProduct(
-      { id, name, price: parseFloat(price), image },
+      {
+        id,
+        name,
+        price: parseFloat(price), // Ensure price is a number by parsing the string
+        image: imagePath, // The uploaded image path is saved
+      },
       {
         onSuccess: () => {
-          setName("");
-          setPrice("");
-          setImage(null);
-          router.back();
+          // 4. On successful update, reset form fields and navigate back
+          setName(""); // Clear the product name input field
+          setPrice(""); // Clear the price input field
+          router.back(); // Navigate back to the previous page
+        },
+        onError: (error) => {
+          console.log("Failed to update product:", error);
         },
       }
     );
   };
+
   const onDelete = () => {
     deleteProduct(id, {
       onSuccess: () => {
@@ -130,6 +151,25 @@ const CreateScreen = () => {
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!image?.startsWith("file://")) {
+      return;
+    }
+
+    const base64 = await FileSystem.readAsStringAsync(image, {
+      encoding: "base64",
+    });
+    const filePath = `${randomUUID()}.png`;
+    const contentType = "image/png";
+    const { data, error } = await supabase.storage
+      .from("product-images")
+      .upload(filePath, decode(base64), { contentType });
+
+    if (data) {
+      return data.path;
     }
   };
   return (

@@ -13,17 +13,21 @@ import { PizzaSize } from "../../../types";
 import { defaultPizzaImage } from "@/constants/Images";
 import { useCart } from "@/providers/CartProvider";
 import { useProduct } from "@/api/products";
+import RemoteImage from "@/components/RemoteImage";
 
 const sizes: PizzaSize[] = ["S", "M", "L", "XL"];
 
 const ProductDetailsScreen = () => {
   const { id: idString } = useLocalSearchParams();
-  const id = parseFloat(typeof idString === "string" ? idString : idString[0]);
+  const id = idString ? parseFloat(idString as string) : null;
+
+  if (!id || isNaN(id)) {
+    return <Text>Invalid product ID</Text>;
+  }
+
   const { data: product, error, isLoading } = useProduct(id);
   const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState<PizzaSize>("M");
-
-  // const product = products.find((p) => p.id.toString() === id);
 
   const addToCart = () => {
     if (!product) return;
@@ -34,14 +38,22 @@ const ProductDetailsScreen = () => {
   if (isLoading) {
     return <ActivityIndicator />;
   }
+
   if (error) {
-    return <Text>Failed to querring products</Text>;
+    return (
+      <View>
+        <Text>Failed to load product details.</Text>
+        <Text>{error.message}</Text>
+      </View>
+    );
   }
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: product?.name || "Product Details" }} />
-      <Image
-        source={{ uri: product?.image || defaultPizzaImage }}
+      <RemoteImage
+        path={product?.image}
+        fallback={defaultPizzaImage}
         style={styles.image}
         resizeMode="contain"
       />
@@ -71,7 +83,7 @@ const ProductDetailsScreen = () => {
         ))}
       </View>
       <Text style={styles.price}>
-        Price: ${product?.price.toFixed(2) || "0.00"}
+        Price: ${product?.price ? product.price.toFixed(2) : "0.00"}
       </Text>
       <Button onPress={addToCart} text="Add to cart" />
     </View>
@@ -98,7 +110,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: "auto",
   },
-
   sizes: {
     flexDirection: "row",
     justifyContent: "space-around",
